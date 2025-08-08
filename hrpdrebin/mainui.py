@@ -50,7 +50,7 @@ class MainWindow(QMainWindow, Ui_mythen_gui):
         base = self.getBaseDirectory(False)
         files, _selectedfilter = getopenfilenames(
             caption="Select scan files",
-            filters="Data files(*.dat)",
+            filters="Data files (*.dat *.xye)",
             basedir=base,
             options=QFileDialog.ReadOnly,
         )

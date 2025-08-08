@@ -1,9 +1,12 @@
 import os.path as path
 import os
+import re
 import numpy as np
 from scisoftpy import io
 
 DEFAULT_BL_DIR = "/dls/i11/data"
+
+MYTHEN_PAT = re.compile(r".*\.(dat|xye)$")
 
 
 def find_mythen_files(
@@ -11,7 +14,7 @@ def find_mythen_files(
     visit=None,
     year=None,
     bl_dir=DEFAULT_BL_DIR,
-    ending=("mac[-_][0-9]*.dat", "mythen[-_][0-9]*.dat"),
+    ending=("mac[-_][0-9]*.dat", "mythen[-_][0-9]*.dat", "mythen3.xye", ),
 ):
     return io.find_scan_files(scan, bl_dir, visit=visit, year=year, ending=ending)
 
@@ -143,27 +146,23 @@ def load_all(files, visit, year, progress=None):
 
 
 def parse_metadata(f):
-    import re
-
-    # mythen_reg = r'^\d+[-_](mac|mythen)[-_]\d*\.dat$' # Unused
-    mythen_reg = re.compile(r".*\.dat")
     dir, dat_file = path.split(f)
     d = io.load(f)
     mythen_files = []
     for k in d.keys():
         if k != "metadata":
             for v in d[k]:
-                match = mythen_reg.match(str(v))
+                match = MYTHEN_PAT.match(str(v))
                 if match:
                     mythen_files.append(path.join(dir, match.group(0)))
 
     if not mythen_files:
-        print("WARNING: The file %s contains no names of .dat files" % f)
+        print("WARNING: The file %s contains no names of .dat or .xye files" % f)
     return mythen_files
 
 
-def parse_metadata_and_load(files):
-    nfiles = parse_metadata(files)
+def parse_metadata_and_load(f):
+    nfiles = parse_metadata(f)
     data = load_all(nfiles, visit=None, year=None)[0]
     return data, nfiles
 
@@ -210,6 +209,9 @@ def process_and_save(
     weights=True,
     ext=None,
 ):
+    if ext is None:
+        ext = ""
+
     print(
         "angle: {}, delta: {}, rebinned: {}, summed: {}, files: {}, output: {}, weights: {}, ext: {}".format(
             angle, delta, rebinned, summed, files, output, weights, ext
