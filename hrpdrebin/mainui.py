@@ -184,7 +184,8 @@ class MainWindow(QMainWindow, Ui_mythen_gui):
 
 
 def main(args=None):
-    del environ["SESSION_MANAGER"] # avoids Session management error
+    if "SESSION_MANAGER" in environ:
+        del environ["SESSION_MANAGER"]  # avoids Session management error
     if args is None:
         import sys
 
